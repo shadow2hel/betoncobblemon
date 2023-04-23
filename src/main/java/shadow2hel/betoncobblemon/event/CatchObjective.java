@@ -24,11 +24,7 @@ public class CatchObjective extends CountingObjective {
 
     public CatchObjective(final Instruction instruction) throws InstructionParseException {
         super(instruction);
-        pokeSelector = new PokeSelector(instruction.next(),
-                Integer.parseInt(instruction.next()),
-                Integer.parseInt(instruction.next()),
-                instruction.next(),
-                instruction.hasArgument("shiny"));
+        pokeSelector = new PokeSelector(instruction.next());
         targetAmount = instruction.getVarNum();
     }
 
