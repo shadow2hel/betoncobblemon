@@ -2,3 +2,4 @@ name: BetonCobblemon
 version: '${version}'
 main: shadow2hel.betoncobblemon.BetonCobblemon
 api-version: 1.19
+depend: [BetonQuest]
