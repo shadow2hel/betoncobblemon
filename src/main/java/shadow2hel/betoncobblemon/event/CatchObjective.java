@@ -3,13 +3,14 @@ package shadow2hel.betoncobblemon.event;
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
 import com.cobblemon.mod.common.api.events.pokemon.PokemonCapturedEvent;
-import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.api.reactive.ObservableSubscription;
-import com.cobblemon.mod.common.pokemon.Pokemon;
-import com.cobblemon.mod.common.pokemon.activestate.PokemonState;
+import io.izzel.arclight.api.Arclight;
+import io.izzel.arclight.common.mod.server.ArclightServer;
+import io.izzel.arclight.common.mod.util.remapper.ArclightRemapper;
 import kotlin.Unit;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.entity.EntityAccess;
 import org.betonquest.betonquest.Instruction;
-import org.betonquest.betonquest.VariableNumber;
 import org.betonquest.betonquest.api.CountingObjective;
 import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.api.profiles.Profile;
@@ -36,7 +37,7 @@ public class CatchObjective extends CountingObjective {
     @Override
     public void start() {
         eventHandler = CobblemonEvents.POKEMON_CAPTURED.subscribe(Priority.NORMAL, event -> {
-            final OnlineProfile onlineProfile = PlayerConverter.getID(Bukkit.getPlayer(event.getPlayer().getUUID()));
+            final OnlineProfile onlineProfile = PlayerConverter.getID(Bukkit.getPlayer(event.getPlayer().getGameProfile().getId()));
             if (containsPlayer(onlineProfile) && pokeSelector.matches(event.getPokemon()) && checkConditions(onlineProfile)) {
                 handleDataChange(onlineProfile, getCountingData(onlineProfile).add());
             }
@@ -46,7 +47,8 @@ public class CatchObjective extends CountingObjective {
 
     @Override
     public void stop() {
-        eventHandler.unsubscribe();
+        if (eventHandler != null)
+            eventHandler.unsubscribe();
     }
 
     private void handleDataChange(final OnlineProfile onlineProfile, final CountingData data) {

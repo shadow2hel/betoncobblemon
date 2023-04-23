@@ -2,9 +2,7 @@ package shadow2hel.betoncobblemon;
 
 import com.cobblemon.mod.common.Cobblemon;
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.ModLoader;
 import org.betonquest.betonquest.BetonQuest;
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import shadow2hel.betoncobblemon.event.CatchObjective;
 

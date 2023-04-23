@@ -20,6 +20,8 @@ minecraft {
     // ...
 }
 
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
 repositories {
     mavenCentral()
     maven {
@@ -45,17 +47,25 @@ repositories {
         name = "betonquest-repo"
         url = "https://betonquest.org/nexus/repository/betonquest/"
     }
+    maven {
+        name "papermc"
+        url "https://papermc.io/repo/repository/maven-public/"
+    }
+    maven {
+        url "https://repo.codemc.io/repository/maven-public/"
+    }
+    maven { url "https://repo.dmulloy2.net/repository/public/" }
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:1.19.2-43.2.0"
     compileOnly "org.spigotmc:spigot-api:1.19.2-R0.1-SNAPSHOT"
-    compileOnly "io.izzel.arclight:arclight-forge-horn:1.0.1:srg"
-    compileOnly "io.izzel.arclight:arclight-api:1.5.2"
+    implementation "io.izzel.arclight:arclight-forge-horn:1.0.1:srg"
+    implementation "io.izzel.arclight:arclight-api:1.5.2"
     implementation fg.deobf("curse.maven:cobblemon-687131:4468321")
-    compileOnly('curse.maven:architectury-419699:4384406')
+    implementation('curse.maven:architectury-419699:4384406')
     implementation('thedarkcolour:kotlinforforge:3.10.0')
-    implementation "org.betonquest:betonquest:2.0.0-SNAPSHOT"
+    implementation "org.betonquest:betonquest:2.0.0-20230423.065702-546"
 }
 
 def targetJavaVersion = 17
@@ -80,5 +90,12 @@ processResources {
     filteringCharset 'UTF-8'
     filesMatching('plugin.yml') {
         expand props
+    }
+}
+
+tasks.register('copyJarToServer', Copy) {
+    copy {
+        from "$buildDir/libs/" + "BetonCobblemon" + "-" + project.version + ".jar"
+        into "F:/Minecraft/servers/forge 1.19.2/plugins"
     }
 }
