@@ -50,6 +50,59 @@ public class PokeSelector {
         return pokesToAdd;
     }
 
+    // Recursion yay!
+    private Map<Species, PokeSpecifics> processPokesAdvanced(Map<Species, PokeSpecifics> pokesToAdd, String pokesWithParams) throws InstructionParseException {
+        final int endingIndex = getNextParamIndex(pokesWithParams);
+        Set<Species> speciesToAdd;
+        PokeSpecifics pokeSpecifics = new PokeSpecifics();
+        // According to @getNextParamIndex() our endingIndex should only be bigger if there is nothing left to parse.
+        boolean isEndOfLoop = endingIndex > pokesWithParams.length();
+        if (isEndOfLoop)
+            return pokesToAdd;
+        String currentPokewithParams = pokesWithParams.substring(0, endingIndex-1);
+        String nextPokewithParams = pokesWithParams.substring(endingIndex);
+        final int openBracketIndex = currentPokewithParams.indexOf('[');
+        // If no open brackets are found we'll assume a pokemon without specifiers is given.
+        if (openBracketIndex == -1){
+            speciesToAdd = getSpeciesOrGroup(currentPokewithParams);
+        } else {
+            String pokeFound = currentPokewithParams.substring(0, openBracketIndex);
+            String pokeParams = currentPokewithParams.substring(openBracketIndex + 1);
+
+            speciesToAdd = getSpeciesOrGroup(pokeFound);
+            pokeSpecifics.parseString(pokeParams);
+        }
+        speciesToAdd.forEach(spec -> pokesToAdd.put(spec, pokeSpecifics));
+        return processPokesAdvanced(pokesToAdd, nextPokewithParams);
+    }
+
+    private int getNextParamIndex(String input) {
+        int openingCounter = 0;
+        int closingCounter = 0;
+        int separatorCounter = 0;
+        int currentIndex = 0;
+        for (char letter : input.toCharArray()) {
+            if (letter == '[')
+                openingCounter++;
+            if (letter == ']')
+                closingCounter++;
+            if (letter == ',')
+                separatorCounter++;
+            if (separatorCounter > 0 && openingCounter == 0) {
+                currentIndex++;
+                break;
+            }
+            if (closingCounter > 0 && closingCounter == openingCounter) {
+                currentIndex++;
+                break;
+            }
+            currentIndex++;
+        }
+        if (input.length() == currentIndex)
+            return -1;
+        return currentIndex;
+    }
+
     private Set<Species> getSpeciesOrGroup(String speciesOrEggGroup) throws InstructionParseException{
         Set<Species> pokesToAdd = new HashSet<>();
         if (isEggGroup(speciesOrEggGroup)) {

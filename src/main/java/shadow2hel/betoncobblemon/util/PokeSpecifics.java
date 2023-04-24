@@ -22,6 +22,7 @@ class PokeSpecifics {
     }
 
 
+    //TODO Implement comma separators for nested lists, as in @PokeSelector$processPokesAdvanced()
     PokeSpecifics parseString(String pokeParametersRaw) throws InstructionParseException {
         String[] paramsWithValues = pokeParametersRaw.split(",");
         for (String paramWithValue : paramsWithValues) {
