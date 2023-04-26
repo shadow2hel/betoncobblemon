@@ -15,7 +15,7 @@ public class PokeSelector {
     public PokeSelector(final String pokeInputWithParameters) throws InstructionParseException {
         if (pokeInputWithParameters.isEmpty())
             throw new InstructionParseException("Invalid PokeSelector, no input was given!");
-        this.species = processPokes(pokeInputWithParameters);
+        this.species = processPokes(new HashMap<>(), pokeInputWithParameters);
     }
 
     private boolean isEggGroup(String eggGroup) {
@@ -27,80 +27,37 @@ public class PokeSelector {
         return true;
     }
 
-    private Map<Species, PokeSpecifics> processPokes(String pokesWithParams) throws InstructionParseException {
-        Map<Species, PokeSpecifics> pokesToAdd = new HashMap<>();
-        String[] pokesToProcess = pokesWithParams.split(";");
-
-        for (String pokeRaw : pokesToProcess) {
-            final int bracketOpenIndex = pokeRaw.indexOf('[');
-            final int bracketClosedIndex = pokeRaw.indexOf(']');
-
-            final String pokeFound = pokeRaw.substring(0, bracketOpenIndex);
-            final String pokeParamsRaw = pokeRaw.substring(bracketOpenIndex + 1, bracketClosedIndex);
-
-            Set<Species> speciesFound = getSpeciesOrGroup(pokeFound);
-            PokeSpecifics specifics = new PokeSpecifics();
-            specifics.parseString(pokeParamsRaw);
-
-            for (Species speciesToAdd : speciesFound) {
-                pokesToAdd.put(speciesToAdd, specifics);
-            }
-        }
-
-        return pokesToAdd;
-    }
-
     // Recursion yay!
-    private Map<Species, PokeSpecifics> processPokesAdvanced(Map<Species, PokeSpecifics> pokesToAdd, String pokesWithParams) throws InstructionParseException {
-        final int endingIndex = getNextParamIndex(pokesWithParams);
+    private Map<Species, PokeSpecifics> processPokes(Map<Species, PokeSpecifics> pokesToAdd, String pokesWithParams) throws InstructionParseException {
+        final int endingIndex = StringUtils.NextParamIndex(pokesWithParams);
         Set<Species> speciesToAdd;
         PokeSpecifics pokeSpecifics = new PokeSpecifics();
         // According to @getNextParamIndex() our endingIndex should only be bigger if there is nothing left to parse.
-        boolean isEndOfLoop = endingIndex > pokesWithParams.length();
+        boolean isEndOfLoop = endingIndex == -1;
         if (isEndOfLoop)
             return pokesToAdd;
-        String currentPokewithParams = pokesWithParams.substring(0, endingIndex-1);
-        String nextPokewithParams = pokesWithParams.substring(endingIndex);
-        final int openBracketIndex = currentPokewithParams.indexOf('[');
+        String currentPokewithParams = pokesWithParams;
+        String nextPokewithParams = "";
+        if (!(currentPokewithParams.length() > 0 && currentPokewithParams.length() == endingIndex)) {
+            currentPokewithParams = pokesWithParams.substring(0, endingIndex + 1);
+            nextPokewithParams = pokesWithParams.substring(endingIndex + 1);
+        }
+        if (nextPokewithParams.startsWith(","))
+            nextPokewithParams = nextPokewithParams.replaceFirst(",", "");
+        final int openBracketIndex = currentPokewithParams.indexOf("[");
         // If no open brackets are found we'll assume a pokemon without specifiers is given.
         if (openBracketIndex == -1){
+            currentPokewithParams = currentPokewithParams.replace(",", "");
             speciesToAdd = getSpeciesOrGroup(currentPokewithParams);
         } else {
             String pokeFound = currentPokewithParams.substring(0, openBracketIndex);
-            String pokeParams = currentPokewithParams.substring(openBracketIndex + 1);
+            String pokeParams = currentPokewithParams.substring(openBracketIndex + 1, currentPokewithParams.length() - 1);
 
             speciesToAdd = getSpeciesOrGroup(pokeFound);
-            pokeSpecifics.parseString(pokeParams);
+            pokeSpecifics.parseString(pokeSpecifics, pokeParams);
         }
         speciesToAdd.forEach(spec -> pokesToAdd.put(spec, pokeSpecifics));
-        return processPokesAdvanced(pokesToAdd, nextPokewithParams);
-    }
-
-    private int getNextParamIndex(String input) {
-        int openingCounter = 0;
-        int closingCounter = 0;
-        int separatorCounter = 0;
-        int currentIndex = 0;
-        for (char letter : input.toCharArray()) {
-            if (letter == '[')
-                openingCounter++;
-            if (letter == ']')
-                closingCounter++;
-            if (letter == ',')
-                separatorCounter++;
-            if (separatorCounter > 0 && openingCounter == 0) {
-                currentIndex++;
-                break;
-            }
-            if (closingCounter > 0 && closingCounter == openingCounter) {
-                currentIndex++;
-                break;
-            }
-            currentIndex++;
-        }
-        if (input.length() == currentIndex)
-            return -1;
-        return currentIndex;
+        return processPokes(pokesToAdd, nextPokewithParams);
     }
 
     private Set<Species> getSpeciesOrGroup(String speciesOrEggGroup) throws InstructionParseException{

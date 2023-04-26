@@ -5,79 +5,103 @@ import com.cobblemon.mod.common.pokeball.PokeBall;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 
+import java.lang.constant.Constable;
+import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 class PokeSpecifics {
-    private int minLevelRequired;
-    private int maxLevelRequired;
+    private Integer minLevel;
+    private Integer maxLevel;
     private Set<PokeBall> pokeBalls;
     private boolean shinyRequired;
 
     PokeSpecifics() {
-        minLevelRequired = 0;
-        maxLevelRequired = 0;
+        minLevel = 0;
+        maxLevel = 0;
         pokeBalls = new HashSet<>();
         shinyRequired = false;
     }
 
+    PokeSpecifics parseString(PokeSpecifics specifics, String pokeParametersRaw) throws InstructionParseException {
+        final int endingIndex = StringUtils.NextParamIndex(pokeParametersRaw);
+        boolean runOutOfParams = endingIndex == -1;
+        if (runOutOfParams || pokeParametersRaw.equalsIgnoreCase("]"))
+            return specifics;
 
-    //TODO Implement comma separators for nested lists, as in @PokeSelector$processPokesAdvanced()
-    PokeSpecifics parseString(String pokeParametersRaw) throws InstructionParseException {
-        String[] paramsWithValues = pokeParametersRaw.split(",");
-        for (String paramWithValue : paramsWithValues) {
-            String[] paramSplitValue = paramWithValue.split(":");
-            // Only standalone parameter we have is shiny, so we check for that here
-            if (paramSplitValue.length == 1) {
-                this.requireShiny(paramSplitValue[0].equalsIgnoreCase("shiny"));
-            } else {
-                final String parameter = paramSplitValue[0];
-                final String value = paramSplitValue[1];
-                switch (parameter.toLowerCase()) {
-                    case "minlevel" -> {
-                        final int minlevel = Integer.parseInt(value);
-                        if (minlevel < 0)
-                            throw new InstructionParseException("Mininum level cannot be below 0!");
-                        requireMinLevel(minlevel);
+        String currentParam = pokeParametersRaw.substring(0, endingIndex);
+        String nextParams = "";
+        if (endingIndex < pokeParametersRaw.length())
+            nextParams = pokeParametersRaw.substring(endingIndex);
+        if (nextParams.startsWith("]"))
+            nextParams = nextParams.replaceFirst("]", "");
+        if (nextParams.startsWith(","))
+            nextParams = nextParams.replaceFirst(",", "");
+        boolean isToggle = !currentParam.contains(":");
+        if (isToggle) {
+            if (currentParam.equalsIgnoreCase("shiny"))
+                specifics.requireShiny(true);
+            else
+                throw new InstructionParseException("Parameter: " + currentParam + " is of unknown type!");
+            return parseString(specifics, nextParams);
+        }
+
+        String[] paramAndValue = currentParam.split(":");
+        String paramKey = paramAndValue[0];
+        String paramValue = paramAndValue[1];
+        // We do a lil bit of reflecting
+        for (Field field : this.getClass().getDeclaredFields()) {
+            if (field.getName().equalsIgnoreCase(paramKey)) {
+                //field.setAccessible(true);
+                if (Constable.class.isAssignableFrom(field.getType())) {
+
+                    if (Integer.class.isAssignableFrom(field.getType())) {
+                        try {
+                            field.set(this, Integer.parseInt(paramValue));
+                        } catch (IllegalAccessException e) {
+                            throw new RuntimeException(e);
+                        }
+                    } else if (String.class.isAssignableFrom(field.getType())) {
+                        try {
+                            field.set(this, paramValue);
+                        } catch (IllegalAccessException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
-                    case "maxlevel" -> {
-                        final int maxlevel = Integer.parseInt(value);
-                        if (maxlevel < 0)
-                            throw new InstructionParseException("Maximum level cannot be below 0!");
-                        requireMaxLevel(maxlevel);
-                    }
-                    case "pokeballs" -> {
-                        String[] allBalls = value.split("/");
-                        Set<PokeBall> balls = new HashSet<>();
-                        for (String strBall : allBalls) {
+
+
+                } else if (Collection.class.isAssignableFrom(field.getType())) {
+                    String specifiersRaw = paramValue.replace("[", "");
+                    specifiersRaw = specifiersRaw.replace("]", "");
+                    String[] specifiers = specifiersRaw.split(",");
+                    if (field.getName().equalsIgnoreCase("pokeballs")) {
+                        Set<PokeBall> ballsToAdd = new HashSet<>();
+                        for (String strBall : specifiers) {
                             PokeBalls.INSTANCE.all()
                                     .stream()
-                                    .filter(ball -> ball.getName().getPath().equalsIgnoreCase(strBall))
+                                    .filter(ball -> ball.getName().toString().contains(strBall))
                                     .findAny()
-                                    .ifPresent(balls::add);
+                                    .ifPresent(ballsToAdd::add);
                         }
-                        if (balls.size() > 0) {
-                            requireSpecificPokeballs(balls);
+                        if (ballsToAdd.size() > 0) {
+                            specifics.requireSpecificPokeballs(ballsToAdd);
                         } else
                             throw new InstructionParseException("The given pokeballs weren't valid!");
                     }
-                    default -> {
-                        throw new InstructionParseException("Parameter: " + parameter + " is not a valid specifier!");
-                    }
                 }
             }
-
         }
-        return this;
+        return parseString(specifics, nextParams);
     }
 
     PokeSpecifics requireMinLevel(Integer minLvl) {
-        minLevelRequired = minLvl;
+        minLevel = minLvl;
         return this;
     }
 
     PokeSpecifics requireMaxLevel(Integer maxLvl) {
-        this.maxLevelRequired = maxLvl;
+        this.maxLevel = maxLvl;
         return this;
     }
 
@@ -97,7 +121,7 @@ class PokeSpecifics {
         }
         if (pokeBalls.size() > 0 && !pokeBalls.contains(pokemonToCheck.getCaughtBall()))
             return false;
-        return (minLevelRequired <= 0 || minLevelRequired <= pokemonToCheck.getLevel())
-                && (maxLevelRequired <= 0 || pokemonToCheck.getLevel() <= maxLevelRequired);
+        return (minLevel <= 0 || minLevel <= pokemonToCheck.getLevel())
+                && (maxLevel <= 0 || pokemonToCheck.getLevel() <= maxLevel);
     }
 }
