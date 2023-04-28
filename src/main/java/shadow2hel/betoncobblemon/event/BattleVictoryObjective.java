@@ -3,13 +3,10 @@ package shadow2hel.betoncobblemon.event;
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.battles.model.actor.ActorType;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
-import com.cobblemon.mod.common.api.events.battles.BattleVictoryEvent;
-import com.cobblemon.mod.common.api.reactive.ObservableSubscription;
 import com.cobblemon.mod.common.battles.BattleSide;
 import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
 import kotlin.Unit;
 import org.betonquest.betonquest.Instruction;
-import org.betonquest.betonquest.api.CountingObjective;
 import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.utils.PlayerConverter;
@@ -20,20 +17,17 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
-public class BattleVictoryObjective extends CountingObjective {
-    private final PokeSelector pokeSelector;
-    private final ActorType typeOfEnemy;
-    private ObservableSubscription<BattleVictoryEvent> eventHandler;
+public class BattleVictoryObjective extends PokeObjective {
+    private ActorType typeOfEnemy;
 
     public BattleVictoryObjective(final Instruction instruction) throws InstructionParseException {
-        super(instruction);
-        pokeSelector = new PokeSelector(instruction.next());
+        super(instruction, new PokeSelector(instruction.next()));
         targetAmount = instruction.getVarNum();
         Optional<String> enemyType = instruction.getOptionalArgument("type");
         typeOfEnemy = null;
         if (enemyType.isPresent()) {
             try {
-                ActorType.valueOf(enemyType.get().toUpperCase());
+                typeOfEnemy = ActorType.valueOf(enemyType.get().toUpperCase());
             } catch (IllegalArgumentException e) {
                 throw new InstructionParseException("Parameter: " + enemyType.get() + " is not a valid enemy type!");
             }
@@ -77,7 +71,7 @@ public class BattleVictoryObjective extends CountingObjective {
             eventHandler.unsubscribe();
     }
 
-    private void handleDataChange(final OnlineProfile onlineProfile, final CountingData data) {
+    protected void handleDataChange(final OnlineProfile onlineProfile, final CountingData data) {
         final String message = "pokemon_to_defeat";
         completeIfDoneOrNotify(onlineProfile, message);
     }
