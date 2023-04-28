@@ -11,20 +11,23 @@ import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.utils.PlayerConverter;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import shadow2hel.betoncobblemon.util.PokeSelector;
 
-import java.util.Arrays;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.StreamSupport;
 
 public class BattleVictoryObjective extends PokeObjective {
     private ActorType typeOfEnemy;
+    private Set<UUID> defeatedPlayers;
 
     public BattleVictoryObjective(final Instruction instruction) throws InstructionParseException {
         super(instruction, new PokeSelector(instruction.next()));
         targetAmount = instruction.getVarNum();
         Optional<String> enemyType = instruction.getOptionalArgument("type");
         typeOfEnemy = null;
+        defeatedPlayers = new HashSet<>();
         if (enemyType.isPresent()) {
             try {
                 typeOfEnemy = ActorType.valueOf(enemyType.get().toUpperCase());
@@ -49,14 +52,24 @@ public class BattleVictoryObjective extends PokeObjective {
 
                         StreamSupport.stream(battleActor.getPlayerUUIDs().spliterator(), false)
                                 .map(Bukkit::getPlayer)
-                                .forEach(player -> {
-                                    final OnlineProfile onlineProfile = PlayerConverter.getID(player);
+                                .map(PlayerConverter::getID)
+                                .forEach(onlineProfile -> {
                                     Arrays.stream(loserSide.getActors())
-                                            .flatMap(pokes -> pokes.getPokemonList().stream())
-                                            .map(BattlePokemon::getOriginalPokemon)
-                                            .forEach(loserPokemon -> {
-                                                if (containsPlayer(onlineProfile) && pokeSelector.matches(loserPokemon) && checkConditions(onlineProfile)) {
-                                                    handleDataChange(onlineProfile, getCountingData(onlineProfile).add());
+                                            .forEach(loserActor -> {
+                                                UUID newPlayer = StreamSupport.stream(loserActor.getPlayerUUIDs().spliterator(), false)
+                                                        .filter(loserUUID -> loserActor.getType() == ActorType.PLAYER && !defeatedPlayers.contains(loserUUID))
+                                                        .findFirst()
+                                                        .orElse(null);
+
+                                                if (newPlayer != null) {
+                                                    defeatedPlayers.add(newPlayer);
+                                                    loserActor.getPokemonList().stream()
+                                                            .map(BattlePokemon::getOriginalPokemon)
+                                                            .forEach(loserPokemon -> {
+                                                                if (containsPlayer(onlineProfile) && pokeSelector.matches(loserPokemon) && checkConditions(onlineProfile)) {
+                                                                    handleDataChange(onlineProfile, getCountingData(onlineProfile).add());
+                                                                }
+                                                            });
                                                 }
                                             });
                                 });
