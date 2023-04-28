@@ -4,6 +4,7 @@ import com.cobblemon.mod.common.Cobblemon;
 import net.minecraftforge.fml.ModList;
 import org.betonquest.betonquest.BetonQuest;
 import org.bukkit.plugin.java.JavaPlugin;
+import shadow2hel.betoncobblemon.event.BattleVictoryObjective;
 import shadow2hel.betoncobblemon.event.CatchObjective;
 
 public final class BetonCobblemon extends JavaPlugin {
@@ -15,6 +16,7 @@ public final class BetonCobblemon extends JavaPlugin {
             this.onDisable();
         }
         BetonQuest.getInstance().registerObjectives("pokecatch", CatchObjective.class);
+        BetonQuest.getInstance().registerObjectives("pokebattle", BattleVictoryObjective.class);
     }
 
     @Override
