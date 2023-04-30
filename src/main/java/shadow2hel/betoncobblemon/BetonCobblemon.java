@@ -6,10 +6,7 @@ import org.betonquest.betonquest.BetonQuest;
 import org.bukkit.plugin.java.JavaPlugin;
 import shadow2hel.betoncobblemon.condition.PokemonInPartyCondition;
 import shadow2hel.betoncobblemon.condition.ShoulderMountCondition;
-import shadow2hel.betoncobblemon.objective.BattleVictoryObjective;
-import shadow2hel.betoncobblemon.objective.CatchObjective;
-import shadow2hel.betoncobblemon.objective.EvolutionObjective;
-import shadow2hel.betoncobblemon.objective.FriendshipObjective;
+import shadow2hel.betoncobblemon.objective.*;
 
 public final class BetonCobblemon extends JavaPlugin {
 
@@ -23,6 +20,7 @@ public final class BetonCobblemon extends JavaPlugin {
         BetonQuest.getInstance().registerObjectives("pokebattle", BattleVictoryObjective.class);
         BetonQuest.getInstance().registerObjectives("pokeevolve", EvolutionObjective.class);
         BetonQuest.getInstance().registerObjectives("pokefriendship", FriendshipObjective.class);
+        BetonQuest.getInstance().registerObjectives("poketrain", TrainEVObjective.class);
 
         BetonQuest.getInstance().registerConditions("pokeinparty", PokemonInPartyCondition.class);
         BetonQuest.getInstance().registerConditions("pokeonshoulder", ShoulderMountCondition.class);

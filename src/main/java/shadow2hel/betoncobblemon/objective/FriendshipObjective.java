@@ -69,10 +69,6 @@ public class FriendshipObjective extends PokeObjective {
             }
         }
 
-        public Set<UUID> getPokemonAlreadyUsed() {
-            return pokemonAlreadyUsed;
-        }
-
         public boolean tryProgress(final Pokemon pokemon) {
             final boolean added = pokemonAlreadyUsed.add(pokemon.getUuid());
             if (added)
@@ -83,11 +79,6 @@ public class FriendshipObjective extends PokeObjective {
         @Override
         public String toString() {
             return super.toString() + ";" + pokemonAlreadyUsed.stream().map(UUID::toString).collect(Collectors.joining("/"));
-        }
-
-        @Override
-        protected void update() {
-            super.update();
         }
     }
 }
