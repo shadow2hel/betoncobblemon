@@ -30,7 +30,7 @@ public class PokemonInPartyCondition extends Condition {
     protected Boolean execute(Profile profile) throws QuestRuntimeException {
         PlayerPartyStore pokeParty = null;
         try {
-           pokeParty = Cobblemon.INSTANCE.getStorage().getParty(profile.getPlayerUUID());
+            pokeParty = Cobblemon.INSTANCE.getStorage().getParty(profile.getPlayerUUID());
         } catch (NoPokemonStoreException e) {
             throw new RuntimeException(e);
         }

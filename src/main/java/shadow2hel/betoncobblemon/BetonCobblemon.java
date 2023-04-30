@@ -5,6 +5,7 @@ import net.minecraftforge.fml.ModList;
 import org.betonquest.betonquest.BetonQuest;
 import org.bukkit.plugin.java.JavaPlugin;
 import shadow2hel.betoncobblemon.condition.PokemonInPartyCondition;
+import shadow2hel.betoncobblemon.condition.ShoulderMountCondition;
 import shadow2hel.betoncobblemon.objective.BattleVictoryObjective;
 import shadow2hel.betoncobblemon.objective.CatchObjective;
 import shadow2hel.betoncobblemon.objective.EvolutionObjective;
@@ -24,6 +25,7 @@ public final class BetonCobblemon extends JavaPlugin {
         BetonQuest.getInstance().registerObjectives("pokefriendship", FriendshipObjective.class);
 
         BetonQuest.getInstance().registerConditions("pokeinparty", PokemonInPartyCondition.class);
+        BetonQuest.getInstance().registerConditions("pokeonshoulder", ShoulderMountCondition.class);
     }
 
     @Override
