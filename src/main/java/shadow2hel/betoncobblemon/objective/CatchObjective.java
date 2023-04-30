@@ -1,4 +1,4 @@
-package shadow2hel.betoncobblemon.event;
+package shadow2hel.betoncobblemon.objective;
 
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
@@ -10,23 +10,17 @@ import org.betonquest.betonquest.utils.PlayerConverter;
 import org.bukkit.Bukkit;
 import shadow2hel.betoncobblemon.util.PokeSelector;
 
-import java.util.Optional;
-import java.util.UUID;
+public class CatchObjective extends PokeObjective {
 
-public class EvolutionObjective extends PokeObjective {
-
-    public EvolutionObjective(Instruction instruction) throws InstructionParseException {
+    public CatchObjective(final Instruction instruction) throws InstructionParseException {
         super(instruction, new PokeSelector(instruction.next()));
         targetAmount = instruction.getVarNum();
     }
 
     @Override
     public void start() {
-        eventHandler = CobblemonEvents.EVOLUTION_COMPLETE.subscribe(Priority.NORMAL, event -> {
-            Optional<UUID> playerUUID = Optional.ofNullable(event.getPokemon().getOwnerUUID());
-            if(playerUUID.isEmpty())
-                return Unit.INSTANCE;
-            OnlineProfile onlineProfile = PlayerConverter.getID(Bukkit.getPlayer(playerUUID.get()));
+        eventHandler = CobblemonEvents.POKEMON_CAPTURED.subscribe(Priority.NORMAL, event -> {
+            final OnlineProfile onlineProfile = PlayerConverter.getID(Bukkit.getPlayer(event.getPlayer().getGameProfile().getId()));
             if (containsPlayer(onlineProfile) && pokeSelector.matches(event.getPokemon()) && checkConditions(onlineProfile)) {
                 handleDataChange(onlineProfile, getCountingData(onlineProfile).add());
             }
@@ -36,13 +30,13 @@ public class EvolutionObjective extends PokeObjective {
 
     @Override
     public void stop() {
-        if(eventHandler != null)
+        if (eventHandler != null)
             eventHandler.unsubscribe();
     }
 
-    @Override
-    protected void handleDataChange(OnlineProfile onlineProfile, CountingData data) {
-        final String message = "pokemon_to_evolve";
+    protected void handleDataChange(final OnlineProfile onlineProfile, final CountingData data) {
+        final String message = "pokemon_to_catch";
         completeIfDoneOrNotify(onlineProfile, message);
     }
+
 }

@@ -8,6 +8,7 @@ import org.betonquest.betonquest.exceptions.InstructionParseException;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class PokeSelector {
     private final Map<Species, PokeSpecifics> species;
@@ -86,6 +87,13 @@ public class PokeSelector {
                 .stream()
                 .anyMatch(speciesEntry -> speciesEntry.getKey().equals(pokemonToCheck.getSpecies())
                         && speciesEntry.getValue().matches(pokemonToCheck));
+    }
+
+    public boolean containsAll(Iterable<Pokemon> pokemonListToCheck) {
+        final int foundAmountPoke = (int) StreamSupport.stream(pokemonListToCheck.spliterator(), false)
+                .filter(this::matches)
+                .count();
+        return foundAmountPoke == species.size();
     }
 
 }

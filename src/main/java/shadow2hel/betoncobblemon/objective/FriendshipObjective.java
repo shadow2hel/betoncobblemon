@@ -1,4 +1,4 @@
-package shadow2hel.betoncobblemon.event;
+package shadow2hel.betoncobblemon.objective;
 
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
