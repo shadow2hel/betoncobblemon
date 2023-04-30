@@ -71,6 +71,8 @@ public class PokeSelector {
                     .collect(Collectors.toSet());
             pokesToAdd.addAll(insertingPokes);
         } else {
+            if (speciesOrEggGroup.equalsIgnoreCase("any"))
+                return (Set<Species>) PokemonSpecies.INSTANCE.getSpecies();
             Species pokeToAdd = PokemonSpecies.INSTANCE.getByName(speciesOrEggGroup);
             if (pokeToAdd == null)
                 throw new InstructionParseException(speciesOrEggGroup + " is not a valid Pokemon and/or Egg Group!");
