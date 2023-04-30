@@ -61,8 +61,16 @@ public class BattleVictoryObjective extends PokeObjective {
                                                         .findFirst()
                                                         .orElse(null);
 
-                                                if (newPlayer != null) {
+                                                if (event.getBattle().isPvP() && newPlayer != null) {
                                                     defeatedPlayers.add(newPlayer);
+                                                    loserActor.getPokemonList().stream()
+                                                            .map(BattlePokemon::getOriginalPokemon)
+                                                            .forEach(loserPokemon -> {
+                                                                if (containsPlayer(onlineProfile) && pokeSelector.matches(loserPokemon) && checkConditions(onlineProfile)) {
+                                                                    handleDataChange(onlineProfile, getCountingData(onlineProfile).add());
+                                                                }
+                                                            });
+                                                } else if(!event.getBattle().isPvP()) {
                                                     loserActor.getPokemonList().stream()
                                                             .map(BattlePokemon::getOriginalPokemon)
                                                             .forEach(loserPokemon -> {

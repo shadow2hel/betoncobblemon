@@ -7,6 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import shadow2hel.betoncobblemon.event.BattleVictoryObjective;
 import shadow2hel.betoncobblemon.event.CatchObjective;
 import shadow2hel.betoncobblemon.event.EvolutionObjective;
+import shadow2hel.betoncobblemon.event.FriendshipObjective;
 
 public final class BetonCobblemon extends JavaPlugin {
 
@@ -19,6 +20,7 @@ public final class BetonCobblemon extends JavaPlugin {
         BetonQuest.getInstance().registerObjectives("pokecatch", CatchObjective.class);
         BetonQuest.getInstance().registerObjectives("pokebattle", BattleVictoryObjective.class);
         BetonQuest.getInstance().registerObjectives("pokeevolve", EvolutionObjective.class);
+        BetonQuest.getInstance().registerObjectives("pokefriendship", FriendshipObjective.class);
     }
 
     @Override
